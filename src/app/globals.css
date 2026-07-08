@@ -98,7 +98,7 @@ header.hd.hd--hidden {
 }
 .hd .brand img {
   width: auto;
-  height: clamp(36px, 3.8vw, 50px);
+  height: clamp(32px, 3.4vw, 44px);
   display: block;
 }
 .hd .links {
