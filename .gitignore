@@ -7,3 +7,6 @@ next-env.d.ts
 .DS_Store
 .env*
 .vercel
+
+# local claude config
+.claude/

@@ -129,7 +129,7 @@ export default function MonumentHero() {
         <Slot
           big="THE ARRAY — HERO FILM"
           sub="DROP IMAGE / VIDEO · 21:6"
-          src="/assets/hero.mp4"
+          src="/hero/hero.mp4"
           locked
         />
       </div>

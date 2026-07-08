@@ -164,7 +164,7 @@ export default function CaseStudies() {
                 <Slot
                   big="CS.01 — HERO STILL"
                   sub="PLATFORM IN USE"
-                  src="/assets/careerkonnect-casestudy.png"
+                  src="/case-studies/careerkonnect.webp"
                 />
                 {/* clear title below the hero — same bone nameplate as CS.02 Eco Muhafiz */}
                 <motion.div className="nameplate" {...stamp}>
@@ -237,7 +237,7 @@ export default function CaseStudies() {
             <Slot
               big="CS.02 — FIELD DEPLOYMENT · UNIT 004"
               sub="MARGALLA HILLS · 33.68°N"
-              src="/assets/eco-hero.png"
+              src="/case-studies/eco-hero.webp"
             />
             {/* nameplate bar bites into the bottom of the photo — the reverse-tone
                 mirror of CS.01's ink card over its dashboard shot */}
@@ -298,13 +298,13 @@ export default function CaseStudies() {
             <Slot
               big="THE SENSOR"
               sub="CANOPY UNIT · 16:10"
-              src="/assets/eco-gis.png"
+              src="/case-studies/eco-gis.webp"
             />
             <Slot
               className="t2"
               big="THE COCKPIT"
               sub="PLATFORM UI · 16:10"
-              src="/assets/chainsaw.png"
+              src="/case-studies/eco-chainsaw.webp"
             />
           </div>
           <a className="visit" href="#">

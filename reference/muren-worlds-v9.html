@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUREN — v4 (case studies)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,500;0,700;0,900;1,700&family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FFFFFF; --ink:#111318; --muted:#8A8578;
+    --line:rgba(17,19,24,.14);
+    --slot:#F0EFEB; --slot-2:#E7E5DE;
+    --heavy:"Archivo Black","Archivo",system-ui,sans-serif;
+    --sans:"Archivo",system-ui,sans-serif;
+    --mono:"Space Mono",ui-monospace,monospace;
+    --blade:polygon(0 0,100% 0,100% calc(100% - 26px),calc(100% - 26px) 100%,0 100%);
+    --blade-sm:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{overflow-x:hidden}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{padding-inline:clamp(18px,3.5vw,50px)}
+  .display{font-family:var(--heavy);font-weight:900;text-transform:uppercase;letter-spacing:-.028em;line-height:.82}
+
+  /* ---- single-row header (clean) ---- */
+  header.hd{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:blur(10px)}
+  .hd nav.top{display:flex;justify-content:space-between;align-items:center;padding:16px clamp(18px,3.5vw,50px)}
+  .hd .brand{display:flex;align-items:center;gap:10px}
+  .hd .brand svg{width:22px;height:22px}
+  .hd .brand .wm{font-family:var(--heavy);font-size:16px;letter-spacing:.04em}
+  .hd .links{display:flex;gap:clamp(14px,2.2vw,30px);align-items:center}
+  .hd .links a{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--muted);transition:color .3s}
+  .hd .links a:hover{color:var(--ink)}
+  .hd .idxbtn{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--ink);background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:9px}
+  .hd .idxbtn .bars{display:inline-flex;flex-direction:column;gap:3px}
+  .hd .idxbtn .bars i{width:16px;height:1.5px;background:var(--ink);transition:transform .3s}
+  .hd .idxbtn:hover .bars i:first-child{transform:translateX(3px)}
+  @media(max-width:760px){.hd .links a{display:none}}
+
+  /* ---- INDEX full-screen overlay ---- */
+  .overlay{position:fixed;inset:0;z-index:200;background:var(--ink);color:#F2EFE8;
+    transform:translateY(-102%);transition:transform .65s cubic-bezier(.76,0,.24,1);
+    display:flex;flex-direction:column;padding:clamp(18px,3.5vw,50px)}
+  .overlay.open{transform:translateY(0)}
+  .ov-top{display:flex;justify-content:space-between;align-items:center}
+  .ov-top .wm{font-family:var(--heavy);font-size:17px;letter-spacing:.04em}
+  .ov-close{background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:#F2EFE8;display:inline-flex;gap:10px;align-items:center}
+  .ov-body{flex:1;display:grid;grid-template-columns:1fr;gap:36px;align-content:center}
+  @media(min-width:900px){.ov-body{grid-template-columns:1.4fr 1fr;align-items:center}}
+  .ov-nav a{display:block;font-family:var(--heavy);font-size:clamp(2.4rem,7.5vw,5.6rem);letter-spacing:-.025em;text-transform:uppercase;line-height:.95;padding:5px 0;color:#F2EFE8;transition:transform .3s,color .3s}
+  .ov-nav a:hover{transform:translateX(14px);color:#C67A2A}
+  .ov-nav a .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:rgba(242,239,232,.5);vertical-align:super;margin-left:12px}
+  .ov-side{border-left:1px solid rgba(242,239,232,.2);padding-left:clamp(18px,3vw,40px)}
+  .ov-side h4{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:rgba(242,239,232,.5);margin-bottom:16px}
+  .ov-side .p{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(242,239,232,.12);font-family:var(--mono);font-size:11.5px}
+  .ov-side .p .n{color:#C67A2A}
+  .ov-foot{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:rgba(242,239,232,.5);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  .slot{position:relative;background:var(--slot);overflow:hidden;cursor:pointer;transition:background .25s;clip-path:var(--blade)}
+  .slot.sm{clip-path:var(--blade-sm)}
+  .slot:hover{background:var(--slot-2)}
+  .slot img,.slot video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .slot .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted);text-align:center;padding:10px}
+  .slot .ph .big{color:currentColor;font-size:10.5px;letter-spacing:.2em}
+  .slot .edge{position:absolute;inset:0;pointer-events:none;border:1px solid var(--line)}
+  .slot.filled .ph{display:none}
+
+  .monument-top{padding-top:clamp(8px,1.6vh,22px)}
+  .monument{font-family:var(--heavy);font-size:clamp(17vw,19.5vw,22vw);line-height:.78;letter-spacing:-.03em;text-align:center;white-space:nowrap}
+  .herostrip{margin-top:clamp(8px,1.2vh,16px);position:relative}
+  /* hero band goes dark on purpose — cinematic slot punched into the white page */
+  .herostrip .slot{aspect-ratio:21/6;clip-path:none;background:#0A0B0F}
+  .herostrip .slot:hover{background:#0C0E12}
+  .herostrip .slot .edge{border-color:rgba(255,255,255,.08)}
+  .herostrip .slot .ph{color:rgba(255,255,255,.42)}
+  .herostrip .slot .ph .big{color:rgba(255,255,255,.72)}
+  /* play affordance for when it becomes footage */
+  .herostrip .playtag{position:absolute;left:clamp(16px,2vw,26px);bottom:clamp(14px,1.6vw,22px);z-index:4;
+    font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:9px;pointer-events:none}
+  .herostrip .playtag .tri{width:0;height:0;border-left:8px solid #C67A2A;border-top:5px solid transparent;border-bottom:5px solid transparent}
+  .metacap{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted);padding-top:10px;border-top:1.5px solid var(--ink);flex-wrap:wrap;gap:8px}
+  .metacap b{color:var(--ink);font-weight:400}
+  .metacap .dot::before{content:"● ";color:var(--ink)}
+  .stamp{position:absolute;right:clamp(14px,4vw,60px);bottom:-52px;width:112px;height:112px;z-index:5;pointer-events:none}
+  .stamp svg{width:100%;height:100%;animation:spin 14s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .stamp .core{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .stamp .core svg{width:34px;height:34px;animation:none}
+
+  .marquee{border-block:1.5px solid var(--ink);overflow:hidden;white-space:nowrap;padding:10px 0;margin-top:clamp(60px,9vh,110px)}
+  .marquee .rail{display:inline-block;animation:slide 26s linear infinite}
+  .marquee span{font-family:var(--heavy);font-size:clamp(.95rem,1.6vw,1.25rem);text-transform:uppercase;letter-spacing:.04em;padding-inline:22px}
+  .marquee em{font-family:var(--mono);font-style:normal;font-size:.75em;color:var(--muted);vertical-align:middle}
+  @keyframes slide{to{transform:translateX(-50%)}}
+
+  /* ---- WHO WE ARE (calm editorial block) ---- */
+  .who{padding-block:clamp(70px,11vh,140px);display:grid;grid-template-columns:1fr;gap:26px}
+  @media(min-width:860px){.who{grid-template-columns:minmax(140px,.55fr) 1.45fr;gap:clamp(30px,5vw,80px)}}
+  .who .lab{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--muted);padding-top:8px}
+  .who .txt{font-family:var(--sans);font-weight:500;font-size:clamp(1.3rem,2.6vw,2.1rem);line-height:1.35;letter-spacing:-.01em;max-width:26ch}
+  .who .txt b{font-weight:700}
+  .who .txt .u{border-bottom:2.5px solid var(--ink)}
+  .who .pill{display:inline-flex;margin-top:34px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;background:var(--ink);color:#F2EFE8;padding:14px 26px;border-radius:100px;transition:transform .3s}
+  .who .pill:hover{transform:translateX(6px)}
+
+  /* ---- traveling sentence: dark -> light journey, focus-pull per clause ---- */
+  .wipe{position:relative;height:360vh}
+  .wipe .pin{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;
+    background:#0A0B0F;color:#F2EFE8;transition:none}
+  .wipe .line{display:flex;align-items:center;gap:clamp(30px,5vw,90px);white-space:nowrap;padding-inline:26vw;will-change:transform}
+  .wipe .seg{font-family:var(--heavy);font-weight:900;text-transform:uppercase;letter-spacing:-.028em;line-height:.92;
+    font-size:clamp(3.2rem,9vw,9rem);display:flex;align-items:center;gap:.35em;will-change:filter,opacity,transform}
+  .wipe .seg .out{color:transparent;-webkit-text-stroke:2px currentColor}
+  .wipe .seg .amp{color:#C67A2A;-webkit-text-stroke:0}
+  .wipe .dash{flex:none;width:clamp(80px,12vw,220px);height:2px;background:currentColor;opacity:.3;position:relative}
+  .wipe .dash::after{content:"";position:absolute;right:-1px;top:-4px;width:2px;height:10px;background:#C67A2A}
+  /* instrument ruler along the bottom, travels with the line */
+  .wipe .ruler{position:absolute;bottom:clamp(46px,7vh,74px);left:0;display:flex;align-items:flex-end;gap:0;will-change:transform;padding-inline:26vw}
+  .wipe .ruler i{flex:none;width:clamp(28px,3.4vw,52px);height:10px;border-left:1.5px solid currentColor;opacity:.35;position:relative}
+  .wipe .ruler i.maj{height:20px;opacity:.6}
+  .wipe .ruler i.maj::after{content:attr(data-n);position:absolute;left:6px;bottom:-16px;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em}
+  .wipe .cue{position:absolute;bottom:clamp(16px,2.6vh,30px);left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.24em;opacity:.5;pointer-events:none}
+  .wipe .idx{position:absolute;top:clamp(22px,3.5vh,40px);left:clamp(18px,3.5vw,50px);font-family:var(--mono);font-size:10px;letter-spacing:.2em;opacity:.55}
+  .wipe .st{position:absolute;top:clamp(22px,3.5vh,40px);right:clamp(18px,3.5vw,50px);font-family:var(--mono);font-size:10px;letter-spacing:.2em;opacity:.55}
+
+  /* ================= CASE STUDIES ================= */
+  .cs-head{padding-top:clamp(30px,5vh,70px)}
+  .cs-head .row{display:flex;justify-content:space-between;align-items:baseline;border-top:1.5px solid var(--ink);padding-top:12px}
+  .cs-head .t{font-family:var(--heavy);font-size:clamp(1.6rem,4vw,3.2rem);text-transform:uppercase;letter-spacing:-.02em}
+  .cs-head .n{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--muted)}
+
+  /* ---- CS.01 — magazine spread: dominant image + overlapping fact card ---- */
+  .cs1{padding-block:clamp(50px,8vh,110px);position:relative}
+  .cs1 .grid{display:grid;grid-template-columns:1fr;gap:34px;position:relative}
+  @media(min-width:920px){.cs1 .grid{grid-template-columns:1.25fr .75fr;gap:0}}
+  .cs1 .main{position:relative}
+  .cs1 .main .slot{aspect-ratio:4/3}
+  .cs1 .main .cap{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between}
+  /* the fact card overlaps the image */
+  .cs1 .fact{background:var(--ink);color:#F2EFE8;padding:clamp(22px,3vw,36px);position:relative;z-index:5;
+    clip-path:var(--blade)}
+  @media(min-width:920px){.cs1 .fact{margin-left:-90px;margin-top:60px;height:fit-content}}
+  .cs1 .fact .k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;opacity:.6;margin-bottom:16px}
+  .cs1 .fact h3{font-family:var(--heavy);font-size:clamp(1.6rem,3vw,2.4rem);text-transform:uppercase;letter-spacing:-.02em;line-height:.9}
+  .cs1 .fact .story{font-family:var(--mono);font-size:11.5px;line-height:1.85;opacity:.85;margin-top:18px}
+  .cs1 .fact .story b{font-weight:400;color:#fff}
+  .cs1 .facts{margin-top:22px;border-top:1px solid rgba(255,255,255,.2)}
+  .cs1 .facts .f{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.14);font-family:var(--mono);font-size:10.5px;letter-spacing:.1em}
+  .cs1 .facts .f .k2{opacity:.55}
+  .cs1 .visit{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;margin-top:22px;display:inline-flex;gap:10px;border-bottom:1.5px solid currentColor;padding-bottom:5px}
+  /* small second image floating under the card */
+  .cs1 .float{position:absolute;width:clamp(140px,17vw,240px);aspect-ratio:3/4;right:clamp(4px,3vw,40px);bottom:-40px;z-index:6;transform:rotate(2.4deg)}
+  @media(max-width:919px){.cs1 .float{display:none}}
+  .cs1 .quote{font-weight:700;font-size:clamp(1.15rem,2.2vw,1.7rem);line-height:1.3;max-width:26ch;margin-top:clamp(40px,7vh,80px)}
+  .cs1 .quote .who{display:block;font-family:var(--mono);font-weight:400;font-size:10.5px;letter-spacing:.14em;color:var(--muted);margin-top:14px}
+
+  /* ---- CS.02 — full-bleed plate, title biting in, fact strip ---- */
+  .cs2{padding-block:clamp(40px,7vh,100px) clamp(60px,9vh,120px)}
+  .cs2 .plate{position:relative}
+  .cs2 .plate .slot{aspect-ratio:21/9;clip-path:none}
+  /* the title overlaps the bottom edge of the plate */
+  .cs2 .title{font-family:var(--heavy);font-size:clamp(2.6rem,8.4vw,8rem);text-transform:uppercase;letter-spacing:-.028em;line-height:.82;
+    margin-top:calc(clamp(2.6rem,8.4vw,8rem) * -.5);position:relative;z-index:5;padding-inline:clamp(18px,3.5vw,50px);pointer-events:none}
+  .cs2 .title .ghost{color:transparent;-webkit-text-stroke:2px var(--ink)}
+  .cs2 .sub{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;padding-inline:clamp(18px,3.5vw,50px);margin-top:22px}
+  .cs2 .sub p{font-family:var(--mono);font-size:11.5px;line-height:1.9;color:var(--muted);max-width:46ch}
+  .cs2 .sub p b{color:var(--ink);font-weight:400}
+  /* horizontal fact strip — completely different from CS1's card */
+  .cs2 .factstrip{display:grid;grid-template-columns:repeat(2,1fr);border-block:1.5px solid var(--ink);margin-top:clamp(26px,4vh,44px)}
+  @media(min-width:820px){.cs2 .factstrip{grid-template-columns:repeat(4,1fr)}}
+  .cs2 .factstrip .cell{padding:clamp(16px,2.4vw,26px) clamp(14px,2vw,24px);border-right:1px solid var(--line)}
+  .cs2 .factstrip .cell:last-child{border-right:0}
+  .cs2 .factstrip .v{font-family:var(--heavy);font-size:clamp(1.5rem,3.2vw,2.6rem);letter-spacing:-.02em}
+  .cs2 .factstrip .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--muted);margin-top:8px}
+  /* twin detail shots row */
+  .cs2 .twins{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,26px);padding-inline:clamp(18px,3.5vw,50px);margin-top:clamp(26px,4vh,44px)}
+  .cs2 .twins .slot{aspect-ratio:16/10}
+  .cs2 .twins .t2{transform:translateY(clamp(18px,3vh,40px))}
+  .cs2 .visit{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;margin:clamp(50px,7vh,80px) clamp(18px,3.5vw,50px) 0;display:inline-flex;gap:10px;border-bottom:1.5px solid var(--ink);padding-bottom:5px}
+
+  /* ---- worlds (kept, follow after case studies) ---- */
+  .world{min-height:100vh;padding:clamp(70px,10vh,120px) clamp(18px,3.5vw,50px) clamp(50px,8vh,100px);position:relative;display:flex;flex-direction:column;justify-content:center;
+    clip-path:polygon(0 0,100% 3.2vw,100% 100%,0 100%);margin-top:-3.2vw}
+  .world.flip{clip-path:polygon(0 3.2vw,100% 0,100% 100%,0 100%)}
+  .world .w-no{position:absolute;top:clamp(48px,7vh,72px);left:clamp(18px,3.5vw,50px);font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;opacity:.65}
+  .world .w-sct{position:absolute;top:clamp(48px,7vh,72px);right:clamp(18px,3.5vw,50px);font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;opacity:.65}
+  .world .wname{font-family:var(--heavy);text-transform:uppercase;letter-spacing:-.025em;line-height:.82;font-size:clamp(3rem,9.5vw,9rem);margin:clamp(30px,4vh,40px) 0 clamp(26px,4vh,46px)}
+  .world .wname .ghost{color:transparent;-webkit-text-stroke:1.5px currentColor;opacity:.35}
+  .world .anchor{font-weight:700;font-size:clamp(1.2rem,2.3vw,1.8rem);line-height:1.25;max-width:26ch}
+  .world .body{font-family:var(--mono);font-size:11.5px;line-height:1.9;max-width:44ch;margin-top:16px;opacity:.8}
+  .world .enter{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;margin-top:28px;display:inline-flex;gap:12px;align-items:center;border-bottom:1.5px solid currentColor;padding-bottom:6px;width:fit-content}
+  .world .slot{background:rgba(255,255,255,.07);color:inherit}
+  .world .slot .edge{border-color:rgba(255,255,255,.22)}
+  .world .slot .ph{color:inherit;opacity:.75}
+  .world .stats{display:flex;gap:clamp(20px,3.5vw,44px);margin-top:26px;flex-wrap:wrap}
+  .world .stats .n{font-family:var(--heavy);font-size:clamp(1.4rem,2.6vw,2.2rem)}
+  .world .stats .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;opacity:.7;margin-top:5px;max-width:16ch}
+  .wgrid{display:grid;grid-template-columns:1fr;gap:40px;align-items:center}
+  @media(min-width:920px){.wgrid{grid-template-columns:.9fr 1.1fr;gap:clamp(36px,5vw,80px)}}
+  .collage{position:relative;height:clamp(340px,52vh,560px)}
+  .collage .slot{position:absolute;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+  .collage .c1{width:58%;aspect-ratio:4/5;left:0;top:4%;z-index:2;transform:rotate(-2deg)}
+  .collage .c2{width:44%;aspect-ratio:3/4;right:0;top:0;z-index:3;transform:rotate(1.8deg)}
+  .collage .c3{width:54%;aspect-ratio:16/10;right:4%;bottom:0;z-index:4;transform:rotate(-1.2deg)}
+  .collage.alt .c1{left:auto;right:0;top:0;transform:rotate(2deg)}
+  .collage.alt .c2{left:0;top:14%;transform:rotate(-2deg)}
+  .collage.alt .c3{left:8%;bottom:0;transform:rotate(1.4deg)}
+  .collage .slot:hover{transform:rotate(0) scale(1.02);z-index:9}
+  .collage .tag{position:absolute;z-index:8;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;background:var(--paper);color:var(--ink);padding:8px 12px;transform:rotate(-3deg);left:6%;bottom:26%}
+  .world.career{background:#14295C;color:#EAF0FF}
+  .world.vr{background:#100F1A;color:#ECEBF5}
+  .world.factory{background:#1E1811;color:#F2ECE2}
+  .world.eco{background:#123020;color:#EAF2EA}
+  .world.career .tint{color:#7CA0F5}.world.vr .tint{color:#8877FF}
+  .world.factory .tint{color:#D9963F}.world.eco .tint{color:#6FC494}
+
+  footer{padding-top:clamp(60px,10vh,130px)}
+  footer .cta{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:0 clamp(18px,3.5vw,50px) clamp(30px,5vh,54px)}
+  footer .cta .t{font-family:var(--heavy);font-size:clamp(1.5rem,3.6vw,3rem);text-transform:uppercase;letter-spacing:-.02em;line-height:.95;max-width:16ch}
+  footer .cta a{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;border-bottom:1.5px solid var(--ink);padding-bottom:5px;white-space:nowrap}
+  footer .monument{line-height:.72;margin-bottom:-0.5vw}
+  footer .foot-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);
+    padding:6px clamp(18px,3.5vw,50px) 18px}
+  footer .foot-meta a:hover{color:var(--ink)}
+
+  .controls{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:100;background:var(--ink);padding:5px;display:flex;gap:5px}
+  .controls button{font-family:var(--mono);font-size:9.5px;color:rgba(255,255,255,.6);background:none;border:none;padding:7px 11px;cursor:pointer}
+  .controls button:hover{color:#fff}
+</style>
+</head>
+<body>
+
+  <header class="hd">
+    <nav class="top">
+      <a href="#" class="brand">
+        <svg viewBox="0 0 120 120"><g fill="#111318">
+          <polygon points="26,30 41,30 41,94 26,94"/><polygon points="79,30 94,30 94,94 79,94"/>
+          <polygon points="41,30 51,30 60,54 69,30 79,30 60,74"/><polygon points="60,54 76,94 67,94 53,60"/>
+        </g></svg>
+        <span class="wm">MUREN</span>
+      </a>
+      <div class="links">
+        <a href="#work">WORK</a><a href="#w-career">SYSTEMS</a><a href="#">RESEARCH</a><a href="#">CONTACT</a>
+        <button class="idxbtn" id="openIdx">INDEX <span class="bars"><i></i><i></i></span></button>
+      </div>
+    </nav>
+  </header>
+
+  <header class="monument-top">
+    <div class="monument">MUREN</div>
+    <div class="herostrip wrap">
+      <div class="slot" data-slot><span class="edge"></span>
+        <div class="ph"><span class="big">THE ARRAY — HERO FILM</span><span>DROP IMAGE / VIDEO · 21:6</span></div>
+        <span class="playtag"><span class="tri"></span>WATCH — 00:00 / 00:05</span>
+      </div>
+      <div class="stamp">
+        <svg viewBox="0 0 100 100"><defs><path id="circ" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs>
+          <text font-family="Space Mono" font-size="10.5" letter-spacing="2.5" fill="#111318"><textPath href="#circ">RESEARCH FIRST · PRODUCT ALWAYS · EST 2025 ·</textPath></text>
+        </svg>
+        <div class="core"><svg viewBox="0 0 120 120"><g fill="#111318">
+          <polygon points="26,30 41,30 41,94 26,94"/><polygon points="79,30 94,30 94,94 79,94"/>
+          <polygon points="41,30 51,30 60,54 69,30 79,30 60,74"/><polygon points="60,54 76,94 67,94 53,60"/>
+        </g></svg></div>
+      </div>
+      <div class="metacap"><span class="dot"><b>THE ARRAY</b></span><span>DEEP-TECH RESEARCH GROUP · ISLAMABAD 33.68°N</span><span>04 / SYSTEMS</span></div>
+    </div>
+  </header>
+
+  <div class="marquee"><div class="rail" id="rail">
+    <span>CAREER KONNECT <em>SYS.01</em></span><span>VR TRAINING <em>SYS.02</em></span><span>FACTORY COPILOT <em>SYS.03</em></span><span>ECO MUHAFIZ <em>SYS.04</em></span><span>WE BUILD OUR OWN SYSTEMS <em>&amp;</em> DISRUPT THEM</span>
+  </div></div>
+
+  <!-- WHO WE ARE -->
+  <section class="who wrap">
+    <div class="lab">WHO WE ARE</div>
+    <div>
+      <p class="txt">We're a deep-tech research group in Islamabad — and we don't advise, we <b>build</b>. Four systems, shipped and running, that let people see what they couldn't before. Our AI recommends; <span class="u">people decide</span>.</p>
+      <a class="pill" href="#work">SEE THE WORK →</a>
+    </div>
+  </section>
+
+  <!-- traveling sentence: out of the dark, into focus -->
+  <section class="wipe" id="wipe">
+    <div class="pin" id="wipePin">
+      <span class="idx">FIG.01 — THE THESIS</span>
+      <span class="st" id="wipeState">RESOLVING · 000%</span>
+      <div class="line" id="track">
+        <span class="seg">We build the <span class="out">instruments</span></span>
+        <span class="dash"></span>
+        <span class="seg">that make the <span class="out">invisible</span> legible</span>
+        <span class="dash"></span>
+        <span class="seg">then hand you the controls<span class="amp">.</span></span>
+      </div>
+      <div class="ruler" id="ruler"></div>
+      <span class="cue">SCROLL →</span>
+    </div>
+  </section>
+
+  <!-- ================= CASE STUDIES ================= -->
+  <section class="cs-head wrap" id="work">
+    <div class="row">
+      <span class="t">Selected Work</span>
+      <span class="n">CASE STUDIES — 02 SHIPPED SYSTEMS</span>
+    </div>
+  </section>
+
+  <!-- CS.01 — CAREERKONNECT · magazine spread -->
+  <section class="cs1 wrap">
+    <div class="grid">
+      <div class="main">
+        <div class="slot" data-slot><span class="edge"></span>
+          <div class="ph"><span class="big">CS.01 — HERO STILL</span><span>PLATFORM IN USE · 4:3</span></div>
+        </div>
+        <div class="cap"><span>CS.01 — CAREERKONNECT</span><span>CAREERKONNECT.ORG</span></div>
+      </div>
+      <div class="fact">
+        <div class="k">CASE STUDY 01</div>
+        <h3>Career<br>Konnect</h3>
+        <div class="story"><b>The problem:</b> thousands of graduates, no signal. Employers can't see who is actually job-ready.<br><br><b>What we built:</b> an adaptive learning platform with an AI tutor — turning coursework into a live, verifiable readiness signal.</div>
+        <div class="facts">
+          <div class="f"><span class="k2">YEAR</span><span>2025 — ONGOING</span></div>
+          <div class="f"><span class="k2">STATUS</span><span>LIVE IN PRODUCTION</span></div>
+          <div class="f"><span class="k2">SCOPE</span><span>PLATFORM · AI TUTOR · ANALYTICS</span></div>
+          <div class="f"><span class="k2">STACK</span><span>FASTAPI · NEXT.JS · VECTOR RAG</span></div>
+        </div>
+        <a class="visit" href="#">VISIT CAREERKONNECT.ORG →</a>
+      </div>
+      <div class="slot float" data-slot><span class="edge"></span>
+        <div class="ph"><span class="big">DETAIL</span><span>AI TUTOR · 3:4</span></div>
+      </div>
+    </div>
+    <div class="quote">"We stopped guessing which graduates were ready. The platform shows us."
+      <span class="who">— PARTNER INSTITUTION, PILOT COHORT</span>
+    </div>
+  </section>
+
+  <!-- CS.02 — ECO MUHAFIZ · full-bleed plate + fact strip -->
+  <section class="cs2">
+    <div class="plate">
+      <div class="slot" data-slot><span class="edge"></span>
+        <div class="ph"><span class="big">CS.02 — AERIAL PLATE</span><span>THE TERRITORY · 21:9 FULL-BLEED</span></div>
+      </div>
+    </div>
+    <div class="title">Eco <span class="ghost">Muhafiz</span></div>
+    <div class="sub">
+      <p><b>The problem:</b> deforestation is only ever discovered after the fact. <b>What we built:</b> Pakistan's first AI-powered climate intelligence platform — solar IoT/LoRa sensors in the canopy, satellite telemetry above, real-time event detection in between. Live at atlas.ecomuhafiz.com.</p>
+      <p><b>Recognition:</b> deployed with conservation authorities; MRV-aligned carbon verification for ESG reporting.</p>
+    </div>
+    <div class="factstrip">
+      <div class="cell"><div class="v">12,500<span style="font-size:.45em">ha</span></div><div class="k">UNDER REAL-TIME MONITORING</div></div>
+      <div class="cell"><div class="v">98.6%</div><div class="k">EVENT CLASSIFICATION ACCURACY</div></div>
+      <div class="cell"><div class="v">73%</div><div class="k">DECLINE IN ILLEGAL LOGGING ALERTS, PILOT ZONES</div></div>
+      <div class="cell"><div class="v">24/7</div><div class="k">AUTONOMOUS FOREST GUARD</div></div>
+    </div>
+    <div class="twins">
+      <div class="slot" data-slot><span class="edge"></span><div class="ph"><span class="big">THE SENSOR</span><span>CANOPY UNIT · 16:10</span></div></div>
+      <div class="slot t2" data-slot><span class="edge"></span><div class="ph"><span class="big">THE COCKPIT</span><span>PLATFORM UI · 16:10</span></div></div>
+    </div>
+    <a class="visit" href="#">VISIT ECOMUHAFIZ.COM →</a>
+  </section>
+
+  <!-- ================= WORLDS ================= -->
+  <section class="world career" id="w-career">
+    <span class="w-no">SYS.01 / WORLD</span><span class="w-sct">EDUCATION & WORKFORCE</span>
+    <div class="wname">Career<br><span class="ghost">Konnect</span></div>
+    <div class="wgrid">
+      <div>
+        <div class="anchor">The distance from classroom to floor — <span class="tint">made visible.</span></div>
+        <div class="body">Turns raw education into proven employability. Surfaces the latent skill employers can never quite see.</div>
+        <div class="stats">
+          <div><div class="n tint">10K+</div><div class="l">LEARNERS ON PATH</div></div>
+          <div><div class="n tint">92%</div><div class="l">JOB-READINESS SIGNAL</div></div>
+        </div>
+        <a class="enter" href="#">ENTER CAREER KONNECT <span class="ar">→</span></a>
+      </div>
+      <div class="collage">
+        <div class="slot c1" data-slot><span class="edge"></span><div class="ph"><span class="big">THE THRESHOLD</span><span>4:5</span></div></div>
+        <div class="slot c2" data-slot><span class="edge"></span><div class="ph"><span class="big">PRODUCT UI</span><span>3:4</span></div></div>
+        <div class="slot c3" data-slot><span class="edge"></span><div class="ph"><span class="big">THE FLOOR</span><span>16:10</span></div></div>
+        <span class="tag">SHOT 01 — DOORWAY, DAWN</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="world vr flip" id="w-vr">
+    <span class="w-no">SYS.02 / WORLD</span><span class="w-sct">IMMERSIVE SIMULATION</span>
+    <div class="wname">VR<br><span class="ghost">Training</span></div>
+    <div class="wgrid">
+      <div class="collage alt">
+        <div class="slot c1" data-slot><span class="edge"></span><div class="ph"><span class="big">THE HAZARD</span><span>4:5</span></div></div>
+        <div class="slot c2" data-slot><span class="edge"></span><div class="ph"><span class="big">IN-SIM VIEW</span><span>3:4</span></div></div>
+        <div class="slot c3" data-slot><span class="edge"></span><div class="ph"><span class="big">THE TRAINEE</span><span>16:10</span></div></div>
+        <span class="tag">SHOT 02 — PANEL, WIREFRAME</span>
+      </div>
+      <div>
+        <div class="anchor">Rehearse the disaster — <span class="tint">without the cost.</span></div>
+        <div class="body">Run the dangerous procedure a thousand times without a scratch. Witness consequence before it costs anything real.</div>
+        <div class="stats">
+          <div><div class="n tint">1000×</div><div class="l">REPEATABLE, SAFELY</div></div>
+          <div><div class="n tint">0</div><div class="l">REAL-WORLD RISK</div></div>
+        </div>
+        <a class="enter" href="#">ENTER VR TRAINING <span class="ar">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="world factory" id="w-factory">
+    <span class="w-no">SYS.03 / WORLD</span><span class="w-sct">INDUSTRIAL AI</span>
+    <div class="wname">Factory<br><span class="ghost">Copilot</span></div>
+    <div class="wgrid">
+      <div>
+        <div class="anchor">What the machine remembers — <span class="tint">surfaced in seconds.</span></div>
+        <div class="body">Point a camera at any machine. Decades of repair history, manuals and tribal knowledge. The AI recommends; the technician decides.</div>
+        <div class="stats">
+          <div><div class="n tint">SEC</div><div class="l">CAMERA TO KNOWLEDGE</div></div>
+          <div><div class="n tint">10+YRS</div><div class="l">TRIBAL KNOWLEDGE CAPTURED</div></div>
+        </div>
+        <a class="enter" href="#">ENTER FACTORY COPILOT <span class="ar">→</span></a>
+      </div>
+      <div class="collage">
+        <div class="slot c1" data-slot><span class="edge"></span><div class="ph"><span class="big">THE GEARBOX</span><span>4:5</span></div></div>
+        <div class="slot c2" data-slot><span class="edge"></span><div class="ph"><span class="big">TECHNICIAN + PHONE</span><span>3:4</span></div></div>
+        <div class="slot c3" data-slot><span class="edge"></span><div class="ph"><span class="big">THE DIAGNOSIS</span><span>16:10</span></div></div>
+        <span class="tag">SHOT 03 — STEEL, STEAM</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="world eco flip" id="w-eco">
+    <span class="w-no">SYS.04 / WORLD</span><span class="w-sct">CLIMATE & ENVIRONMENT</span>
+    <div class="wname">Eco<br><span class="ghost">Muhafiz</span></div>
+    <div class="wgrid">
+      <div class="collage alt">
+        <div class="slot c1" data-slot><span class="edge"></span><div class="ph"><span class="big">THE FOREST</span><span>4:5</span></div></div>
+        <div class="slot c2" data-slot><span class="edge"></span><div class="ph"><span class="big">THE SENSOR</span><span>3:4</span></div></div>
+        <div class="slot c3" data-slot><span class="edge"></span><div class="ph"><span class="big">CANOPY · AI VIEW</span><span>16:10</span></div></div>
+        <span class="tag">SHOT 04 — DELTA, DAWN MIST</span>
+      </div>
+      <div>
+        <div class="anchor">Where the forest speaks — <span class="tint">and AI protects.</span></div>
+        <div class="body">The whole territory, at once. Every river, forest and emission, watched in real time. Pakistan's first AI-powered climate intelligence platform.</div>
+        <div class="stats">
+          <div><div class="n tint">12,500ha</div><div class="l">REAL-TIME MONITORING</div></div>
+          <div><div class="n tint">98.6%</div><div class="l">CLASSIFICATION ACCURACY</div></div>
+        </div>
+        <a class="enter" href="#">ENTER ECO MUHAFIZ <span class="ar">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="cta">
+      <div class="t">Let's build something that matters.</div>
+      <a href="#">TALK TO THE GROUP →</a>
+    </div>
+    <div class="monument display">MUREN</div>
+    <div class="foot-meta">
+      <span>© 2026 MUREN (PRIVATE) LIMITED · ISLAMABAD, PK</span>
+      <span>RESEARCH FIRST · PRODUCT ALWAYS</span>
+      <span><a href="#">LINKEDIN</a> · <a href="#">GITHUB</a> · <a href="#">CONTACT</a></span>
+    </div>
+  </footer>
+
+  <!-- INDEX OVERLAY -->
+  <div class="overlay" id="overlay">
+    <div class="ov-top">
+      <span class="wm">MUREN</span>
+      <button class="ov-close" id="closeIdx">CLOSE ×</button>
+    </div>
+    <div class="ov-body">
+      <nav class="ov-nav">
+        <a href="#work">Work <span class="k">02</span></a>
+        <a href="#w-career">Systems <span class="k">04</span></a>
+        <a href="#">Research</a>
+        <a href="#">The Group</a>
+        <a href="#">Contact</a>
+      </nav>
+      <div class="ov-side">
+        <h4>THE ARRAY</h4>
+        <div class="p"><span><span class="n">01</span> &nbsp;Career Konnect</span><span>EDU</span></div>
+        <div class="p"><span><span class="n">02</span> &nbsp;VR Training</span><span>SIM</span></div>
+        <div class="p"><span><span class="n">03</span> &nbsp;Factory Copilot</span><span>IND</span></div>
+        <div class="p"><span><span class="n">04</span> &nbsp;Eco Muhafiz</span><span>ENV</span></div>
+      </div>
+    </div>
+    <div class="ov-foot">
+      <span>ISLAMABAD · 33.68°N 73.05°E</span>
+      <span>RESEARCH FIRST · PRODUCT ALWAYS</span>
+      <span id="clock2">--:--:--</span>
+    </div>
+  </div>
+
+  <input type="file" id="file" accept="image/*,video/*" hidden>
+  <div class="controls"><button id="clr">CLEAR ASSETS</button></div>
+
+<script>
+(function(){
+  const rail=document.getElementById('rail');rail.innerHTML+=rail.innerHTML;
+
+  // traveling sentence: horizontal scrub + focus-pull + dark->light
+  const wipe=document.getElementById('wipe'),track=document.getElementById('track'),
+        wipePin=document.getElementById('wipePin'),wipeState=document.getElementById('wipeState');
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  // build ruler ticks
+  const ruler=document.getElementById('ruler');
+  for(let i=0;i<=90;i++){const t=document.createElement('i');if(i%5===0){t.className='maj';t.dataset.n=String(i*10).padStart(3,'0');}ruler.appendChild(t);}
+  let tgt=0,cur=0;
+  function measure(){
+    const r=wipe.getBoundingClientRect();
+    const total=wipe.offsetHeight-innerHeight;
+    tgt=Math.min(Math.max(-r.top/total,0),1);
+  }
+  addEventListener('scroll',measure,{passive:true});addEventListener('resize',measure);measure();
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const mix=(c1,c2,t)=>'rgb('+Math.round(lerp(c1[0],c2[0],t))+','+Math.round(lerp(c1[1],c2[1],t))+','+Math.round(lerp(c1[2],c2[2],t))+')';
+  const DARK=[10,11,15],LIGHT=[255,255,255],BONE=[242,239,232],INK=[17,19,24];
+  const segs=[...track.querySelectorAll('.seg')];
+  (function loop(){
+    cur+= (tgt-cur)*(reduce?1:0.08);
+    const over=Math.max(0,track.scrollWidth-innerWidth);
+    const x=-cur*over;
+    track.style.transform='translateX('+x+'px)';
+    ruler.style.transform='translateX('+x*0.98+'px)';
+    // dark -> light in the final stretch (the sentence emerges into the light)
+    const lt=Math.min(Math.max((cur-0.62)/0.33,0),1);
+    wipePin.style.background=mix(DARK,LIGHT,lt);
+    wipePin.style.color=mix(BONE,INK,lt);
+    // focus-pull: each clause resolves as it crosses viewport centre
+    const cx=innerWidth/2;
+    segs.forEach(s=>{
+      const r=s.getBoundingClientRect();
+      const d=Math.abs((r.left+r.width/2)-cx);
+      const f=Math.min(Math.max(1-d/(innerWidth*0.55),0),1);
+      s.style.filter='blur('+((1-f)*9).toFixed(1)+'px)';
+      s.style.opacity=(0.25+f*0.75).toFixed(2);
+    });
+    if(wipeState)wipeState.textContent=(cur>0.97?'LEGIBLE · 100%':'RESOLVING · '+String(Math.round(cur*100)).padStart(3,'0')+'%');
+    requestAnimationFrame(loop);
+  })();
+
+  // live clock (header + overlay)
+  function tick(){const d=new Date(),p=n=>String(n).padStart(2,'0');
+    const t=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+    const c1=document.getElementById('clock');if(c1)c1.textContent=t;
+    const c2=document.getElementById('clock2');if(c2)c2.textContent=t;}
+  tick();setInterval(tick,1000);
+
+  // INDEX overlay
+  const ov=document.getElementById('overlay');
+  document.getElementById('openIdx').onclick=()=>ov.classList.add('open');
+  document.getElementById('closeIdx').onclick=()=>ov.classList.remove('open');
+  ov.querySelectorAll('a').forEach(a=>a.onclick=()=>ov.classList.remove('open'));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')ov.classList.remove('open');});
+  const file=document.getElementById('file');let active=null;
+  function load(f){if(!f||!active)return;const url=URL.createObjectURL(f);active.querySelectorAll('img,video').forEach(n=>n.remove());
+    let el;if(f.type.startsWith('video')){el=document.createElement('video');el.src=url;el.autoplay=el.loop=el.muted=el.playsInline=true;}else{el=document.createElement('img');el.src=url;}
+    active.appendChild(el);active.classList.add('filled');}
+  document.querySelectorAll('[data-slot]').forEach(s=>{
+    s.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();active=s;file.click();});
+    ['dragenter','dragover'].forEach(ev=>s.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();s.classList.add('drag');}));
+    ['dragleave','drop'].forEach(ev=>s.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();s.classList.remove('drag');}));
+    s.addEventListener('drop',e=>{active=s;load(e.dataTransfer.files[0]);});
+  });
+  file.addEventListener('change',e=>load(e.target.files[0]));
+  document.getElementById('clr').onclick=()=>document.querySelectorAll('[data-slot]').forEach(s=>{s.querySelectorAll('img,video').forEach(n=>n.remove());s.classList.remove('filled');});
+})();
+</script>
+</body>
+</html>

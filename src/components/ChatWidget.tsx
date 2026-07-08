@@ -31,7 +31,7 @@ const SCRIPT: Turn[] = [
   },
 ];
 
-const LOGO = "/courses/ai-assistant-logo.png";
+const LOGO = "/brand/chat-logo.webp";
 
 // "a **b** c" -> [{bold:false,"a "},{bold:true,"b"},{bold:false," c"}]
 type Tok = { bold: boolean; text: string };

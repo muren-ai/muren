@@ -122,7 +122,7 @@ export default function Nav() {
         <nav className="top">
           <a href="#" className="brand" aria-label="MUREN — home">
             <Image
-              src="/assets/muren-horizontal.png?v=2"
+              src="/brand/logo-horizontal.webp"
               alt="MUREN"
               width={1176}
               height={273}

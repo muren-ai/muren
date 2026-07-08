@@ -17,7 +17,7 @@ export default function TermsPage() {
       <header className="legal-top wrap">
         <Link href="/" className="legal-brand" aria-label="MUREN — home">
           <Image
-            src="/assets/muren-horizontal.png"
+            src="/brand/logo-horizontal.webp"
             alt="MUREN"
             width={1768}
             height={344}
