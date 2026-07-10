@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -40,10 +40,67 @@ const spaceMono = Space_Mono({
   display: "swap",
 });
 
+const SITE_URL = "https://muren.ai";
+const TITLE = "MUREN — We build our own systems and disrupt them.";
+const DESCRIPTION =
+  "A deep-tech research group in Islamabad. Four systems — Career Konnect, VR Training, Factory Copilot, and Eco Muhafiz — shipped and running, that let people see what they couldn't before. Our AI recommends; people decide.";
+
 export const metadata: Metadata = {
-  title: "MUREN — We build our own systems and disrupt them.",
-  description:
-    "A deep-tech research group in Islamabad. Four systems, shipped and running, that let people see what they couldn't before. Our AI recommends; people decide.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: TITLE,
+    template: "%s — MUREN",
+  },
+  description: DESCRIPTION,
+  applicationName: "MUREN",
+  keywords: [
+    "MUREN",
+    "deep tech",
+    "AI research",
+    "Islamabad",
+    "Pakistan",
+    "Career Konnect",
+    "VR training",
+    "factory copilot",
+    "Eco Muhafiz",
+    "geospatial AI",
+    "human-in-the-loop AI",
+  ],
+  authors: [{ name: "MUREN", url: SITE_URL }],
+  creator: "MUREN",
+  publisher: "MUREN (Private) Limited",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "MUREN",
+    title: TITLE,
+    description: DESCRIPTION,
+    locale: "en_US",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 600,
+        alt: "MUREN — deep-tech research group, Islamabad",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/og.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
