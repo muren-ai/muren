@@ -23,7 +23,8 @@ type World = {
   anchorTint: string;
   body: string;
   stats: [string, string][];
-  enter: string;
+  enter?: string;
+  status?: string;
   shots: [string, string, string?][]; // [big, sub, src?] for c1,c2,c3
   tag: string;
 };
@@ -69,7 +70,7 @@ const WORLDS: World[] = [
       ["1000×", "REPEATABLE, SAFELY"],
       ["0", "REAL-WORLD RISK"],
     ],
-    enter: "ENTER VR TRAINING",
+    status: "TWO SIMS IN PRODUCTION — PILOT ACCESS SOON",
     shots: [
       ["THE HAZARD", "4:5"],
       ["IN-SIM VIEW", "3:4"],
@@ -143,9 +144,16 @@ function Copy({ w }: { w: World }) {
           </div>
         ))}
       </div>
-      <a className="enter" href="#">
-        {w.enter} <span className="ar">→</span>
-      </a>
+      {w.status ? (
+        <div className="status">
+          <span className="dot" aria-hidden="true" />
+          {w.status}
+        </div>
+      ) : (
+        <a className="enter" href="#">
+          {w.enter} <span className="ar">→</span>
+        </a>
+      )}
     </div>
   );
 }

@@ -8,8 +8,8 @@ gsap.registerPlugin(ScrollTrigger);
 
 /* Every other world gets shots — a frame someone already chose. VR gets a
  * viewport: an equirect panorama you look around inside. Yaw wraps seamlessly
- * because equirects tile horizontally (background-repeat: repeat-x), so the
- * whole camera is just background-position math — no 3D library. */
+ * because equirects tile horizontally, so the whole camera is a translate3d
+ * on one oversized layer — compositor-only, no repaints, no 3D library. */
 
 type ChannelKey = "konbini" | "scaffold";
 
@@ -34,41 +34,78 @@ const CHANNELS: Record<
 export default function VRViewport() {
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
   const poseRef = useRef<HTMLSpanElement>(null);
   const [channel, setChannel] = useState<ChannelKey>("konbini");
   const channelRef = useRef<ChannelKey>("konbini");
   channelRef.current = channel;
 
-  // camera state lives in refs — sampled by one gsap ticker, never re-renders
+  /* camera state lives in refs — sampled by one gsap ticker, never re-renders.
+     targets move instantly (drag), rendered values ease toward them, so the
+     look always lands soft no matter how coarse the pointer events are */
   const cam = useRef({
-    yaw: 0, // free-look offset from dragging
-    pitch: 0,
+    tYaw: 0,
+    tPitch: 0,
+    rYaw: 0,
+    rPitch: 0,
     velYaw: 0,
     velPitch: 0,
-    scrub: 0.5, // section scroll progress
-    kick: 0, // transient tilt used for the channel-switch drop
+    scrub: 0.5,
+    kick: 0,
     dragging: false,
+    active: false, // section on screen — ticker is a no-op otherwise
   });
-  const stageH = useRef(0);
+  const size = useRef({ h: 0, layerH: 0 });
+  const reducedRef = useRef(false);
 
   useEffect(() => {
     const stage = stageRef.current;
+    const layer = layerRef.current;
     const root = rootRef.current;
-    if (!stage || !root) return;
+    if (!stage || !layer || !root) return;
 
-    // warm the other channel so switching never shows a blank frame
+    // warm both channels so switching never shows a blank frame
     Object.values(CHANNELS).forEach(({ src }) => {
       const img = new window.Image();
       img.src = src;
     });
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) return; // CSS renders the static centered frame
+    reducedRef.current = reduced;
 
-    const ro = new ResizeObserver(() => {
-      stageH.current = stage.getBoundingClientRect().height;
-    });
+    const applySizes = () => {
+      const z = CHANNELS[channelRef.current].zoom;
+      if (reduced) {
+        // static centered frame, no camera
+        layer.style.width = "100%";
+        layer.style.height = "100%";
+        layer.style.transform = "none";
+        layer.style.backgroundSize = `auto ${z * 100}%`;
+        layer.style.backgroundPosition = "50% 50%";
+        return;
+      }
+      const r = stage.getBoundingClientRect();
+      const layerH = z * r.height;
+      // one full 360° span (2×layerH) plus a stage width so the window is
+      // always covered while the translate wraps
+      layer.style.height = `${layerH}px`;
+      layer.style.width = `${2 * layerH + r.width}px`;
+      layer.style.backgroundSize = `auto ${layerH}px`;
+      size.current = { h: r.height, layerH };
+    };
+
+    const ro = new ResizeObserver(applySizes);
     ro.observe(stage);
+    // re-measure when the channel (zoom) changes
+    const mo = new MutationObserver(applySizes);
+    mo.observe(layer, { attributes: true, attributeFilter: ["data-ch"] });
+
+    if (reduced) {
+      return () => {
+        ro.disconnect();
+        mo.disconnect();
+      };
+    }
 
     const st = ScrollTrigger.create({
       trigger: root.closest(".world") ?? root,
@@ -77,6 +114,9 @@ export default function VRViewport() {
       scrub: true,
       onUpdate: (self) => {
         cam.current.scrub = self.progress;
+      },
+      onToggle: (self) => {
+        cam.current.active = self.isActive;
       },
     });
 
@@ -94,17 +134,16 @@ export default function VRViewport() {
     };
     const move = (e: PointerEvent) => {
       if (!cam.current.dragging) return;
-      const h = stageH.current || stage.getBoundingClientRect().height;
-      const z = CHANNELS[channelRef.current].zoom;
-      const bgH = z * h;
-      const degPerPxX = 360 / (2 * bgH);
-      const degPerPxY = 180 / bgH;
+      const { layerH } = size.current;
+      if (!layerH) return;
+      const degPerPxX = 360 / (2 * layerH);
+      const degPerPxY = 180 / layerH;
       const dYaw = -(e.clientX - lastX) * degPerPxX;
       const dPitch = (e.clientY - lastY) * degPerPxY;
-      cam.current.yaw += dYaw;
-      cam.current.pitch -= dPitch;
+      cam.current.tYaw += dYaw;
+      cam.current.tPitch += dPitch;
       cam.current.velYaw = dYaw;
-      cam.current.velPitch = -dPitch;
+      cam.current.velPitch = dPitch;
       lastX = e.clientX;
       lastY = e.clientY;
     };
@@ -116,55 +155,66 @@ export default function VRViewport() {
     stage.addEventListener("pointerup", up);
     stage.addEventListener("pointercancel", up);
 
+    let lastTx = NaN;
+    let lastTy = NaN;
+    let lastPose = "";
     const tick = () => {
       const c = cam.current;
-      const ch = CHANNELS[channelRef.current];
-      const h = stageH.current;
+      if (!c.active) return;
+      const { h, layerH } = size.current;
       if (!h) return;
+      const ch = CHANNELS[channelRef.current];
 
       // released drags glide to a stop
       if (!c.dragging) {
-        c.yaw += c.velYaw;
-        c.pitch += c.velPitch;
-        c.velYaw *= 0.93;
-        c.velPitch *= 0.93;
+        c.tYaw += c.velYaw;
+        c.tPitch += c.velPitch;
+        c.velYaw *= 0.94;
+        c.velPitch *= 0.94;
       }
+      // rendered pose eases toward the target — this is the smoothness
+      c.rYaw += (c.tYaw - c.rYaw) * 0.14;
+      c.rPitch += (c.tPitch - c.rPitch) * 0.14;
 
       /* scroll contribution: the konbini pans across the aisle; the scaffold
          sinks — the deeper you scroll, the further down the camera looks */
-      const scrubYaw =
-        channelRef.current === "konbini"
-          ? (c.scrub - 0.5) * 160
-          : (c.scrub - 0.5) * 40;
-      const scrubPitch =
-        channelRef.current === "scaffold" ? (0.5 - c.scrub) * 34 : 0;
+      const isScaffold = channelRef.current === "scaffold";
+      const scrubYaw = (c.scrub - 0.5) * (isScaffold ? 40 : 160);
+      const scrubPitch = isScaffold ? (0.5 - c.scrub) * 34 : 0;
 
       const z = ch.zoom;
       const maxPitch = 90 - 90 / z - 2;
       const pitch = gsap.utils.clamp(
         -maxPitch,
         maxPitch,
-        ch.basePitch + c.pitch + scrubPitch + c.kick
+        ch.basePitch + c.rPitch + scrubPitch + c.kick
       );
-      const yaw = c.yaw + scrubYaw;
+      const yaw = c.rYaw + scrubYaw;
 
-      const bgH = z * h;
-      const bgW = 2 * bgH;
-      const x = -((((yaw / 360) * bgW) % bgW));
-      const centerY = (h - bgH) / 2;
-      const y = gsap.utils.clamp(h - bgH, 0, centerY + (pitch / 180) * bgH);
+      const span = 2 * layerH; // px per full 360°
+      let x = -(((yaw / 360) * span) % span);
+      if (x > 0) x -= span;
+      const centerY = (h - layerH) / 2;
+      const y = gsap.utils.clamp(h - layerH, 0, centerY + (pitch / 180) * layerH);
 
-      stage.style.backgroundPosition = `${x.toFixed(1)}px ${y.toFixed(1)}px`;
-
+      // skip DOM writes when the camera has settled
+      if (Math.abs(x - lastTx) > 0.05 || Math.abs(y - lastTy) > 0.05) {
+        layer.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
+        lastTx = x;
+        lastTy = y;
+      }
       if (poseRef.current) {
         const yawDisp = ((Math.round(yaw) % 360) + 360) % 360;
         const pitchDisp = Math.round(pitch);
-        poseRef.current.textContent = `YAW ${String(yawDisp).padStart(
-          3,
-          "0"
-        )}° · PITCH ${pitchDisp >= 0 ? "+" : "−"}${String(
-          Math.abs(pitchDisp)
-        ).padStart(2, "0")}° · FOV ${Math.round(180 / z)}°`;
+        const pose = `YAW ${String(yawDisp).padStart(3, "0")}° · PITCH ${
+          pitchDisp >= 0 ? "+" : "−"
+        }${String(Math.abs(pitchDisp)).padStart(2, "0")}° · FOV ${Math.round(
+          180 / z
+        )}°`;
+        if (pose !== lastPose) {
+          poseRef.current.textContent = pose;
+          lastPose = pose;
+        }
       }
     };
     gsap.ticker.add(tick);
@@ -173,6 +223,7 @@ export default function VRViewport() {
       gsap.ticker.remove(tick);
       st.kill();
       ro.disconnect();
+      mo.disconnect();
       stage.removeEventListener("pointerdown", down);
       stage.removeEventListener("pointermove", move);
       stage.removeEventListener("pointerup", up);
@@ -183,21 +234,23 @@ export default function VRViewport() {
   const switchChannel = (next: ChannelKey) => {
     if (next === channel) return;
     setChannel(next);
-    cam.current.yaw = 0;
-    cam.current.pitch = 0;
-    cam.current.velYaw = 0;
-    cam.current.velPitch = 0;
+    const c = cam.current;
+    c.tYaw = 0;
+    c.tPitch = 0;
+    c.rYaw = 0;
+    c.rPitch = 0;
+    c.velYaw = 0;
+    c.velPitch = 0;
     /* the drop: entering the scaffold starts the camera level, then it
        sinks to the resting downward gaze — the stomach-drop beat */
-    if (next === "scaffold") {
-      const c = cam.current;
+    if (next === "scaffold" && !reducedRef.current) {
       gsap.fromTo(
         c,
         { kick: 34 },
         { kick: 0, duration: 1.6, ease: "power3.out", overwrite: "auto" }
       );
     } else {
-      cam.current.kick = 0;
+      c.kick = 0;
     }
   };
 
@@ -208,10 +261,6 @@ export default function VRViewport() {
       <div
         className="vp-stage"
         ref={stageRef}
-        style={{
-          backgroundImage: `url(${ch.src})`,
-          backgroundSize: `auto ${ch.zoom * 100}%`,
-        }}
         role="img"
         aria-label={
           channel === "konbini"
@@ -219,6 +268,12 @@ export default function VRViewport() {
             : "Interactive panorama on construction scaffolding, looking down"
         }
       >
+        <div
+          className="vp-layer"
+          ref={layerRef}
+          data-ch={channel}
+          style={{ backgroundImage: `url(${ch.src})` }}
+        />
         <span className="edge" />
         <span className="vp-ret" aria-hidden="true" />
         <span className="vp-pose" ref={poseRef}>

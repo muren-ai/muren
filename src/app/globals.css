@@ -2186,11 +2186,20 @@ footer .cta a {
   overflow: hidden;
   clip-path: var(--blade);
   background-color: #0a0912;
-  background-repeat: repeat-x;
-  background-position: 50% 50%;
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
+}
+/* the pano rides one oversized layer moved with translate3d — compositor
+   work only, so the look stays smooth and the page never repaints for it */
+.vp-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-repeat: repeat-x;
+  will-change: transform;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
 }
 .vp-stage:active {
   cursor: grabbing;
@@ -2298,9 +2307,39 @@ footer .cta a {
 }
 /* the deliberate symmetry break: the viewport column runs wider than any
    collage — the one world that earns more window gets more window */
+.world.vr {
+  padding-bottom: clamp(90px, 12vh, 160px);
+}
 @media (min-width: 920px) {
   .world.vr .wgrid {
     grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+/* live status line — replaces the enter link while the sims are in build */
+.world .status {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  margin-top: 28px;
+  display: inline-flex;
+  gap: 11px;
+  align-items: center;
+  opacity: 0.9;
+}
+.world .status .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--w-tint, currentColor);
+  animation: status-pulse 2.2s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2309,5 +2348,8 @@ footer .cta a {
   }
   .vp-stage {
     cursor: default;
+  }
+  .world .status .dot {
+    animation: none;
   }
 }
