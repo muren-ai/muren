@@ -15,17 +15,19 @@ type ChannelKey = "konbini" | "scaffold";
 
 const CHANNELS: Record<
   ChannelKey,
-  { src: string; label: string; zoom: number; basePitch: number }
+  { src: string; label: string; short: string; zoom: number; basePitch: number }
 > = {
   konbini: {
     src: "/worlds/vr-konbini.webp",
     label: "CH.01 — KONBINI, TOKYO",
+    short: "CH.01 — KONBINI",
     zoom: 2.6,
     basePitch: 0,
   },
   scaffold: {
     src: "/worlds/vr-scaffold.webp",
     label: "CH.02 — SCAFFOLD, 10F",
+    short: "CH.02 — SCAFFOLD",
     zoom: 2.4,
     basePitch: -30,
   },
@@ -124,11 +126,26 @@ export default function VRViewport() {
     });
     cam.current.active = st.isActive;
 
+    /* pitch is the bounded axis. these are the limits for the DRAG TARGET
+       itself — clamping only the rendered value lets the target accumulate
+       invisible overshoot that must be unwound before the view responds */
+    const pitchBounds = (): [number, number] => {
+      const ch = CHANNELS[channelRef.current];
+      const isScaffold = channelRef.current === "scaffold";
+      const maxPitch = 90 - 90 / ch.zoom - 2;
+      const scrubPitch = isScaffold ? (0.5 - cam.current.scrub) * 34 : 0;
+      const offset = ch.basePitch + scrubPitch + cam.current.kick;
+      return [-maxPitch - offset, maxPitch - offset];
+    };
+
     /* drag = free look. horizontal drags only, so vertical touch still
        scrolls the page (touch-action: pan-y on the stage) */
     let lastX = 0;
     let lastY = 0;
     const down = (e: PointerEvent) => {
+      /* presses on the standby monitor are clicks, not drags — capturing
+         them here would steal the button's click event */
+      if ((e.target as HTMLElement).closest(".vp-pip")) return;
       cam.current.dragging = true;
       cam.current.velYaw = 0;
       cam.current.velPitch = 0;
@@ -145,14 +162,21 @@ export default function VRViewport() {
       const dYaw = -(e.clientX - lastX) * degPerPxX;
       const dPitch = (e.clientY - lastY) * degPerPxY;
       cam.current.tYaw += dYaw;
-      cam.current.tPitch += dPitch;
       cam.current.velYaw = dYaw;
+      /* the target clamps AT the limit — zero banked overshoot, so
+         reversing responds on the first pixel. the eased render already
+         makes the arrival at the edge feel soft */
+      const [lo, hi] = pitchBounds();
+      cam.current.tPitch = gsap.utils.clamp(lo, hi, cam.current.tPitch + dPitch);
       cam.current.velPitch = dPitch;
       lastX = e.clientX;
       lastY = e.clientY;
     };
     const up = () => {
       cam.current.dragging = false;
+      // release inside the rubber zone: settle back to the real limit
+      const [lo, hi] = pitchBounds();
+      cam.current.tPitch = gsap.utils.clamp(lo, hi, cam.current.tPitch);
     };
     stage.addEventListener("pointerdown", down);
     stage.addEventListener("pointermove", move);
@@ -171,12 +195,21 @@ export default function VRViewport() {
       if (!h) return;
       const ch = CHANNELS[channelRef.current];
 
-      // released drags glide to a stop
+      // released drags glide to a stop; inertia dies at the wall instead
+      // of grinding into it, and scroll-driven bound shifts never bank debt
       if (!c.dragging) {
         c.tYaw += c.velYaw;
         c.tPitch += c.velPitch;
         c.velYaw *= 0.94;
         c.velPitch *= 0.94;
+        const [lo, hi] = pitchBounds();
+        if (c.tPitch > hi) {
+          c.tPitch = hi;
+          c.velPitch = 0;
+        } else if (c.tPitch < lo) {
+          c.tPitch = lo;
+          c.velPitch = 0;
+        }
       }
       // rendered pose eases toward the target — this is the smoothness
       c.rYaw += (c.tYaw - c.rYaw) * 0.14;
@@ -261,6 +294,7 @@ export default function VRViewport() {
   };
 
   const ch = CHANNELS[channel];
+  const other: ChannelKey = channel === "konbini" ? "scaffold" : "konbini";
 
   return (
     <div className="vrvp" ref={rootRef}>
@@ -287,19 +321,22 @@ export default function VRViewport() {
         </span>
         <span className="vp-hint">DRAG TO LOOK</span>
         <span className="tag">POV 02 — NO ONE PICKS YOUR FRAME</span>
-      </div>
-      <div className="vp-channels" role="tablist" aria-label="Simulation channel">
-        {(Object.keys(CHANNELS) as ChannelKey[]).map((key) => (
-          <button
-            key={key}
-            role="tab"
-            aria-selected={channel === key}
-            className={channel === key ? "on" : ""}
-            onClick={() => switchChannel(key)}
-          >
-            {CHANNELS[key].label}
-          </button>
-        ))}
+        {/* the standby monitor: only the world you're NOT in — a preview
+            inset in the program frame, the way a control room does it */}
+        <button
+          className="vp-pip"
+          onClick={() => switchChannel(other)}
+          aria-label={`Switch to ${CHANNELS[other].label}`}
+        >
+          <span
+            className="pip-thumb"
+            style={{ backgroundImage: `url(${CHANNELS[other].src})` }}
+          />
+          <span className="pip-meta">
+            <span>{CHANNELS[other].short}</span>
+            <span className="pip-state">STANDBY</span>
+          </span>
+        </button>
       </div>
     </div>
   );
