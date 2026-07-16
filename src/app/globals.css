@@ -2315,32 +2315,14 @@ footer .cta a {
     grid-template-columns: 1.15fr 0.85fr;
   }
 }
-/* live status line — replaces the enter link while the sims are in build */
+/* status line — replaces the enter link while the sims are in build.
+   same voice as .enter, minus the underline: a fact, not a destination */
 .world .status {
   font-family: var(--mono);
   font-size: 10.5px;
   letter-spacing: 0.18em;
   margin-top: 28px;
-  display: inline-flex;
-  gap: 11px;
-  align-items: center;
-  opacity: 0.9;
-}
-.world .status .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--w-tint, currentColor);
-  animation: status-pulse 2.2s ease-in-out infinite;
-}
-@keyframes status-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
+  opacity: 0.75;
 }
 @media (prefers-reduced-motion: reduce) {
   .vp-hint {
@@ -2348,8 +2330,5 @@ footer .cta a {
   }
   .vp-stage {
     cursor: default;
-  }
-  .world .status .dot {
-    animation: none;
   }
 }

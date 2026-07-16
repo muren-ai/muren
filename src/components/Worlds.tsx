@@ -145,10 +145,7 @@ function Copy({ w }: { w: World }) {
         ))}
       </div>
       {w.status ? (
-        <div className="status">
-          <span className="dot" aria-hidden="true" />
-          {w.status}
-        </div>
+        <div className="status">{w.status}</div>
       ) : (
         <a className="enter" href="#">
           {w.enter} <span className="ar">→</span>

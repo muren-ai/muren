@@ -92,6 +92,9 @@ export default function VRViewport() {
       layer.style.width = `${2 * layerH + r.width}px`;
       layer.style.backgroundSize = `auto ${layerH}px`;
       size.current = { h: r.height, layerH };
+      // land centered immediately so the frame never shows the zenith
+      // while waiting for the first ticker write
+      layer.style.transform = `translate3d(0px, ${(r.height - layerH) / 2}px, 0)`;
     };
 
     const ro = new ResizeObserver(applySizes);
@@ -119,6 +122,7 @@ export default function VRViewport() {
         cam.current.active = self.isActive;
       },
     });
+    cam.current.active = st.isActive;
 
     /* drag = free look. horizontal drags only, so vertical touch still
        scrolls the page (touch-action: pan-y on the stage) */
@@ -155,8 +159,10 @@ export default function VRViewport() {
     stage.addEventListener("pointerup", up);
     stage.addEventListener("pointercancel", up);
 
-    let lastTx = NaN;
-    let lastTy = NaN;
+    /* Infinity, NOT NaN: `Math.abs(x - NaN) > 0.05` is always false, which
+       silently skips every transform write and kills the camera dead */
+    let lastTx = Infinity;
+    let lastTy = Infinity;
     let lastPose = "";
     const tick = () => {
       const c = cam.current;
