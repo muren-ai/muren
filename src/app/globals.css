@@ -2171,3 +2171,143 @@ footer .cta a {
     clip-path: inset(-25% 0% -25% 0);
   }
 }
+
+/* ---- SYS.02: the viewport ----------------------------------------------
+   every other world gets shots — a frame someone chose for you. vr gets a
+   live viewport, because in vr nobody picks the frame for you. */
+.vrvp {
+  position: relative;
+  width: 100%;
+  align-self: start;
+}
+.vp-stage {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  clip-path: var(--blade);
+  background-color: #0a0912;
+  background-repeat: repeat-x;
+  background-position: 50% 50%;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+.vp-stage:active {
+  cursor: grabbing;
+}
+.vp-stage .edge {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+/* center reticle — camera hud, not decoration: this is a pose, not a shot */
+.vp-ret {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.55;
+}
+.vp-ret::before,
+.vp-ret::after {
+  content: "";
+  position: absolute;
+  background: #fff;
+  mix-blend-mode: difference;
+}
+.vp-ret::before {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, 100% 32%, 0 32%, 0 68%, 100% 68%, 100% 100%, 0 100%);
+}
+.vp-ret::after {
+  top: 50%;
+  left: 0;
+  height: 1px;
+  width: 100%;
+  clip-path: polygon(0 0, 32% 0, 32% 100%, 0 100%, 68% 0, 100% 0, 100% 100%, 68% 100%);
+}
+.vp-pose,
+.vp-hint {
+  position: absolute;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: #fff;
+  background: rgba(10, 9, 18, 0.55);
+  padding: 6px 9px;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.vp-pose {
+  top: 10px;
+  left: 12px;
+}
+.vp-hint {
+  bottom: 10px;
+  right: 12px;
+  opacity: 0.7;
+}
+.vrvp .tag {
+  position: absolute;
+  z-index: 8;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 8px 12px;
+  transform: rotate(3deg);
+  right: 2%;
+  bottom: 12%;
+  border: 1px solid currentColor;
+  opacity: 0.9;
+  pointer-events: none;
+}
+.vp-channels {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.vp-channels button {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  clip-path: var(--blade-sm);
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+.vp-channels button:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+.vp-channels button.on {
+  background: var(--w-tint);
+  border-color: transparent;
+  color: #0d0c16;
+}
+/* the deliberate symmetry break: the viewport column runs wider than any
+   collage — the one world that earns more window gets more window */
+@media (min-width: 920px) {
+  .world.vr .wgrid {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vp-hint {
+    display: none;
+  }
+  .vp-stage {
+    cursor: default;
+  }
+}

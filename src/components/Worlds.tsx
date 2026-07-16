@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { useGSAP } from "@gsap/react";
 import Slot from "./Slot";
+import VRViewport from "./VRViewport";
 
 gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin, useGSAP);
 
@@ -61,9 +62,9 @@ const WORLDS: World[] = [
     ghost: "Training",
     tint: "#8877ff",
     flip: true,
-    anchorLead: "Rehearse the disaster — ",
-    anchorTint: "without the cost.",
-    body: "Run the dangerous procedure a thousand times without a scratch. Witness consequence before it costs anything real.",
+    anchorLead: "Ten storeys up, or behind the counter — ",
+    anchorTint: "presence is the teacher.",
+    body: "Two worlds built to be lived in. A Japanese konbini where the lesson is daily life; a scaffold ten storeys up where the lesson is gravity. Repeat either a thousand times — neither one bruises.",
     stats: [
       ["1000×", "REPEATABLE, SAFELY"],
       ["0", "REAL-WORLD RISK"],
@@ -74,7 +75,7 @@ const WORLDS: World[] = [
       ["IN-SIM VIEW", "3:4"],
       ["THE TRAINEE", "16:10"],
     ],
-    tag: "SHOT 02 — PANEL, WIREFRAME",
+    tag: "POV 02 — NO ONE PICKS YOUR FRAME",
   },
   {
     key: "factory",
@@ -244,7 +245,7 @@ export default function Worlds() {
 
         /* corner telemetry labels decode in */
         section
-          .querySelectorAll<HTMLElement>(".w-no, .w-sct, .collage .tag")
+          .querySelectorAll<HTMLElement>(".w-no, .w-sct, .collage .tag, .vrvp .tag")
           .forEach((el) => {
             const original = el.textContent ?? "";
             gsap.to(el, {
@@ -317,13 +318,13 @@ export default function Worlds() {
           <div className="wgrid">
             {w.flip ? (
               <>
-                <Collage w={w} />
+                {w.key === "vr" ? <VRViewport /> : <Collage w={w} />}
                 <Copy w={w} />
               </>
             ) : (
               <>
                 <Copy w={w} />
-                <Collage w={w} />
+                {w.key === "vr" ? <VRViewport /> : <Collage w={w} />}
               </>
             )}
           </div>
