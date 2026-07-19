@@ -56,6 +56,23 @@ export default function Slot({
       if (!el) return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+      /* phones: animating `filter` re-rasters every card's layer mid-scroll,
+         which iOS Safari answers with blank boxes and half-drawn slices.
+         The pocket edition develops with opacity + settle only — compositor
+         work, never a repaint. Desktop keeps the full grayscale develop. */
+      if (window.matchMedia("(max-width: 919px)").matches) {
+        gsap.set(el, { opacity: 0, scale: 1.04 });
+        gsap.to(el, {
+          opacity: 1,
+          scale: 1,
+          duration: 0.9,
+          ease: "power2.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 85%", once: true },
+          onComplete: () => gsap.set(el, { clearProps: "opacity,transform,scale" }),
+        });
+        return;
+      }
+
       gsap.set(el, { filter: "grayscale(1) contrast(1.04) brightness(1.02)", scale: 1.06 });
       gsap.to(el, {
         filter: "grayscale(0) contrast(1) brightness(1)",

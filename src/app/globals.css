@@ -397,7 +397,9 @@ header.hd.hd--hidden {
   position: absolute;
   inset: 0;
   transform-origin: 50% 50%;
-  will-change: transform, filter;
+  /* no standing will-change: keeping every card on its own compositor
+     layer is what made iOS drop/slice them mid-scroll — GSAP promotes
+     layers itself for the duration of a tween */
 }
 .slot img,
 .slot video {
@@ -1663,7 +1665,11 @@ header.hd.hd--hidden {
   .collage .slot,
   .collage.alt .slot,
   .world .collage .slot {
-    position: static;
+    /* relative, NOT static: in flow it lays out identically, but the slot
+       must stay the containing block for its inset-0 media — static made
+       every image size itself against the whole collage and each slot
+       showed a clipped slice of it */
+    position: relative;
     width: 100%;
     left: auto;
     right: auto;
@@ -2430,6 +2436,12 @@ footer .cta a {
     display: inline-block;
     margin-top: 14px;
     transform: none;
+  }
+  /* the career product cards print a step smaller than full page width —
+     they're specimens, not spreads */
+  .world.career .collage .slot {
+    width: 88%;
+    align-self: center;
   }
   /* CS.01 stacked order: dashboard → live session → dossier. The specimen
      belongs with the footage, not appended after the whole read-out.
