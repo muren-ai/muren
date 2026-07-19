@@ -320,7 +320,6 @@ export default function VRViewport() {
           YAW 000° · PITCH +00° · FOV {Math.round(180 / ch.zoom)}°
         </span>
         <span className="vp-hint">DRAG TO LOOK</span>
-        <span className="tag">POV 02 — NO ONE PICKS YOUR FRAME</span>
         {/* the standby monitor: only the world you're NOT in — a preview
             inset in the program frame, the way a control room does it */}
         <button
@@ -338,6 +337,9 @@ export default function VRViewport() {
           </span>
         </button>
       </div>
+      {/* outside the stage so on phones it can step off the glass and sit
+          below the frame, the way the collage tags already do */}
+      <span className="tag">POV 02 — NO ONE PICKS YOUR FRAME</span>
     </div>
   );
 }

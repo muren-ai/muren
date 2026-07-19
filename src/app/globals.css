@@ -26,6 +26,12 @@ body {
      sticky header; clip prevents horizontal scroll without that side effect */
   overflow-x: clip;
 }
+html {
+  /* mobile browsers "boost" text inside fixed-height scrollable blocks
+     (the chat panel) to sizes we never set — all type here is deliberate */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 body {
   background: var(--paper);
   color: var(--ink);
@@ -176,8 +182,11 @@ header.hd.hd--hidden {
 .hd .idxbtn:hover .bars i:first-child {
   transform: translateX(3px);
 }
+/* phone header: brand + INDEX only — the overlay IS the mobile nav.
+   `.hd .links a.navlink` (not `a`) so this actually outranks the
+   inline-block the masked-swap rule sets on the same links */
 @media (max-width: 760px) {
-  .hd .links a {
+  .hd .links a.navlink {
     display: none;
   }
 }
@@ -1165,13 +1174,38 @@ header.hd.hd--hidden {
    dossier ends (the "VISIT CAREERKONNECT.ORG" line), so the pinned panel
    releases with no empty space below it. The scrub range is therefore the
    left column's own height — the 4-message session is paced to fit it. */
-/* mobile: no pin — inline, natural height, plays on scroll-into-view */
+/* mobile: no pin — the same framed chat window, just inline. Bounded
+   height like the desktop panel; the session plays on scroll-into-view
+   and the transcript scrolls within its own glass. Type steps down a
+   notch so the window holds a conversation, not one giant bubble. */
 .chat-pin.inline .ck-panel {
-  height: auto;
+  height: min(54vh, 450px);
+}
+.chat-pin.inline .ck-bubble {
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 9px 12px;
 }
 .chat-pin.inline .ck-body {
-  overflow: visible;
-  min-height: 0;
+  gap: 12px;
+  padding: 16px;
+}
+.chat-pin.inline .ck-av {
+  width: 28px;
+  height: 28px;
+}
+.chat-pin.inline .ck-logo {
+  width: 38px;
+  height: 38px;
+}
+.chat-pin.inline .ck-title {
+  font-size: 14px;
+}
+.chat-pin.inline .ck-msg.ck-coach .ck-col {
+  max-width: 85%;
+}
+.chat-pin.inline .ck-ph {
+  font-size: 13px;
 }
 /* reduced motion: full static transcript, no choreography */
 .chat-pin.reduced .ck-panel {
@@ -1613,7 +1647,10 @@ header.hd.hd--hidden {
   right: 2%;
   transform: rotate(3deg);
 }
-/* tablet: collapse to a clean vertical stack, no rotation */
+/* tablet: collapse to a clean vertical stack, no rotation.
+   `.world .collage …` variants outrank the per-world cascade placements
+   (.world.career .c1 etc.) so career/eco cards don't keep their desktop
+   widths and hug the left edge of the stack */
 @media (max-width: 919px) {
   .collage {
     aspect-ratio: auto;
@@ -1624,7 +1661,8 @@ header.hd.hd--hidden {
     gap: 18px;
   }
   .collage .slot,
-  .collage.alt .slot {
+  .collage.alt .slot,
+  .world .collage .slot {
     position: static;
     width: 100%;
     left: auto;
@@ -1639,7 +1677,8 @@ header.hd.hd--hidden {
     opacity: 1;
   }
   .collage .tag,
-  .collage.alt .tag {
+  .collage.alt .tag,
+  .world .collage .tag {
     position: static;
     align-self: flex-start;
     transform: none;
@@ -2366,5 +2405,122 @@ footer .cta a {
   }
   .vp-stage {
     cursor: default;
+  }
+}
+
+/* ============================================================
+   POCKET EDITION — the phone recomposition
+   Nothing shrinks apologetically: the same film, printed at
+   program size. Every rule here re-sets an element that was
+   composed for a wide frame; no mobile-only decoration.
+   ============================================================ */
+
+/* slots still waiting on footage collapse to leader frames — short strips
+   carrying only the label, like unexposed film leader. Honest about what's
+   pending without a screen of blank rectangles. (Stacked layouts only —
+   on desktop the cascade composition needs their full silhouettes.) */
+@media (max-width: 919px) {
+  .collage .slot:not(.filled) {
+    aspect-ratio: auto;
+    height: 76px;
+  }
+  /* the POV tag steps off the glass and sits below the frame */
+  .vrvp .tag {
+    position: static;
+    display: inline-block;
+    margin-top: 14px;
+    transform: none;
+  }
+  /* CS.01 stacked order: dashboard → live session → dossier. The specimen
+     belongs with the footage, not appended after the whole read-out.
+     display:contents lifts the plate and dossier into the same flex flow
+     as the side rail so the dossier can be ordered last. */
+  .cs1 .blueprint {
+    display: flex;
+    flex-direction: column;
+  }
+  .cs1 .main {
+    display: contents;
+  }
+  .cs1 .dossier {
+    order: 2;
+    margin-top: 0;
+  }
+  .cw-cap {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 760px) {
+  /* the monument is a monument again — poster-size, near edge-to-edge.
+     Footer inherits the same size so the arch-out bookend still mirrors.
+     Top clearance trimmed: a breath under the header, not a landing strip. */
+  .monument {
+    font-size: 26vw;
+  }
+  .monument-top {
+    padding-top: clamp(36px, 6vh, 56px);
+  }
+  /* hero film: full-bleed square window instead of a tall center-crop
+     sliver — the 16:9 frame keeps most of its composition */
+  .herostrip {
+    padding-inline: 0;
+  }
+  .herostrip .slot {
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* world names land like title cards, not captions */
+  .world .wname {
+    font-size: clamp(3rem, 16vw, 5rem);
+  }
+
+  /* the viewport turns portrait — a phone held up inside the world */
+  .vp-stage {
+    aspect-ratio: 4 / 5;
+  }
+  .vp-pip {
+    width: clamp(110px, 34%, 150px);
+  }
+  .world.vr {
+    padding-bottom: clamp(56px, 8vh, 90px);
+  }
+
+  /* rhythm: gaps re-derived for the narrow frame — desktop paddings were
+     sized to clear diagonals and pinned columns that don't exist here */
+  .who {
+    padding-top: 64px;
+  }
+  .cs-head {
+    padding-top: 64px;
+  }
+  .cs2 {
+    padding-block: 44px 64px;
+  }
+  /* twin detail shots read at full width, no diagonal stagger */
+  .cs2 .twins {
+    grid-template-columns: 1fr;
+  }
+  .cs2 .twins .t2 {
+    transform: none;
+  }
+
+  /* footer meta: three fighting columns become clean mono rows */
+  footer .cta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  footer .foot-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+  footer .foot-meta span {
+    flex: none;
+  }
+  footer .foot-meta span:nth-child(2),
+  footer .foot-meta span:last-child {
+    text-align: left;
   }
 }
